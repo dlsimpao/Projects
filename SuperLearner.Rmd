@@ -1,0 +1,99 @@
+---
+title: "SuperLearner - Training"
+author: "Ricardo Simpao"
+date: "2/1/2020"
+output: pdf_document
+---
+
+```{r Setup, include=FALSE, results = FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+install.packages("SuperLearner")
+install.packages(c("caret", "glmnet", "randomForest", "ggplot2", "RhpcBLASctl"))
+install.packages("xgboost", repos=c("http://dmlc.ml/drat/", getOption("repos")), type="source")
+
+library(tidyverse)
+```
+
+```{r Setup Dataset}
+library(MASS)
+
+#loads data set
+data(Boston, package = "MASS")
+
+#Reviews info
+?MASS::Boston 
+
+#Checks missing data
+colSums(is.na(Boston))
+
+#Extract outcome variable
+outcome = Boston$medv
+
+#df for explanatory variables
+data = subset(Boston, select = -medv)
+
+str(data)
+
+dim(data)
+```
+
+```{r}
+set.seed(1)
+
+#samples indices of 150
+train_obs = sample(nrow(data),150)
+
+#X - training sample
+x_train = data[train_obs,]
+
+#test sample
+x_test = data[-train_obs,]
+
+#binary outcome bin (supervised training set) based on `outcome` variable created
+outcome_bin = as.numeric(outcome > 22)
+
+y_train = outcome_bin[train_obs]
+y_test = outcome_bin[-train_obs]
+
+# Review the outcome variable distribution.
+table(y_train, useNA = "ifany")
+```
+
+```{r Review available models}
+library(SuperLearner)
+
+listWrappers()
+
+#try: glmnet, randomForest, XGBoost, SVM, bartMachine
+```
+
+```{r Fit individual models}
+set.seed(1)
+
+sl_lasso = SuperLearner(Y = y_train, X = x_train, family = binomial(),
+                        SL.library = "SL.glmnet")
+
+sl_lasso
+
+names(sl_lasso)
+```
+
+```{r}
+#Risk for the best model
+
+sl_lasso %>% 
+  pluck("cvRisk") %>% 
+  min()
+
+str(sl_lasso$fitLibrary$SL.glmnet_All$object, max.level = 1)
+```
+```{r}
+#Fit random forest
+library(ranger)
+
+sl_rf = SuperLearner(Y = y_train, X = x_train, family = binomial(),
+                     SL.library = "SL.ranger")
+
+sl_rf
+```
