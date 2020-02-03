@@ -6,12 +6,21 @@ output: pdf_document
 ---
 
 ```{r Setup, include=FALSE, results = FALSE}
+# doc: https://docs.google.com/document/d/1QvocFtYHh2kq5CsO1j20xYU4XYnohAE3puSpYQ1wP64/edit
+# source: https://cran.r-project.org/web/packages/SuperLearner/vignettes/Guide-to-SuperLearner.html
+
 knitr::opts_chunk$set(echo = TRUE)
 
-install.packages("SuperLearner")
-install.packages(c("caret", "glmnet", "randomForest", "ggplot2", "RhpcBLASctl"))
-install.packages("xgboost", repos=c("http://dmlc.ml/drat/", getOption("repos")), type="source")
-
+#install.packages("SuperLearner")
+#install.packages(c("caret", "glmnet", "randomForest", "ggplot2", "RhpcBLASctl"))
+#install.packages("xgboost", repos=c("http://dmlc.ml/drat/", getOption("repos")), type="source")
+library(SuperLearner)
+library(caret)
+library(glmnet)
+library(randomForest)
+library(ggplot2)
+library(RhpcBLASctl)
+library(xgboost)
 library(tidyverse)
 ```
 
@@ -96,4 +105,14 @@ sl_rf = SuperLearner(Y = y_train, X = x_train, family = binomial(),
                      SL.library = "SL.ranger")
 
 sl_rf
+```
+
+```{r}
+#Fit multiple models
+set.seed(1)
+sl = SuperLearner(Y = y_train, X = x_train, family = binomial(),
+  SL.library = c("SL.mean", "SL.glmnet", "SL.ranger"))
+sl
+
+sl$times$everything
 ```
